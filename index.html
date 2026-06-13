@@ -16,8 +16,10 @@
     --danger: #ff3b30;
     --radius: 14px;
     --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
     --modal-overlay: rgba(0,0,0,0.4);
     --drag-over-bg: #f0f7ff;
+    --gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   }
   .dark {
     --bg: #1c1c1e;
@@ -28,19 +30,79 @@
     --accent: #0a84ff;
     --accent-hover: #409cff;
     --shadow: 0 2px 12px rgba(0,0,0,0.3);
+    --shadow-lg: 0 8px 30px rgba(0,0,0,0.4);
     --modal-overlay: rgba(0,0,0,0.6);
     --drag-over-bg: #1c2a3a;
+    --gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   }
-  @media (prefers-color-scheme: dark) {
-    :root:not(.light) { --bg: #1c1c1e; --card-bg: #2c2c2e; --text: #f5f5f7; --text-secondary: #98989d; --border: #3a3a3c; --accent: #0a84ff; --accent-hover: #409cff; --shadow: 0 2px 12px rgba(0,0,0,0.3); --modal-overlay: rgba(0,0,0,0.6); --drag-over-bg: #1c2a3a; }
+  .ocean {
+    --bg: #e8f4f8;
+    --card-bg: #ffffff;
+    --text: #1a3a4a;
+    --text-secondary: #5a7a8a;
+    --border: #b8d4e0;
+    --accent: #0077b6;
+    --accent-hover: #0096c7;
+    --danger: #d62828;
+    --shadow: 0 2px 12px rgba(0,119,182,0.1);
+    --shadow-lg: 0 8px 30px rgba(0,119,182,0.15);
+    --modal-overlay: rgba(0,119,182,0.25);
+    --drag-over-bg: #d0eaf5;
+    --gradient: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
+  }
+  .forest {
+    --bg: #e8f5e9;
+    --card-bg: #ffffff;
+    --text: #1b3a1b;
+    --text-secondary: #5a7a5a;
+    --border: #c8e6c9;
+    --accent: #2e7d32;
+    --accent-hover: #388e3c;
+    --danger: #c62828;
+    --shadow: 0 2px 12px rgba(46,125,50,0.1);
+    --shadow-lg: 0 8px 30px rgba(46,125,50,0.15);
+    --modal-overlay: rgba(46,125,50,0.25);
+    --drag-over-bg: #c8e6c9;
+    --gradient: linear-gradient(135deg, #2e7d32 0%, #66bb6a 100%);
+  }
+  .sunset {
+    --bg: #fef3e2;
+    --card-bg: #ffffff;
+    --text: #3a2a1a;
+    --text-secondary: #8a7a5a;
+    --border: #f0d9b8;
+    --accent: #d97706;
+    --accent-hover: #f59e0b;
+    --danger: #dc2626;
+    --shadow: 0 2px 12px rgba(217,119,6,0.1);
+    --shadow-lg: 0 8px 30px rgba(217,119,6,0.15);
+    --modal-overlay: rgba(217,119,6,0.2);
+    --drag-over-bg: #fce4c8;
+    --gradient: linear-gradient(135deg, #d97706 0%, #f59e0b 100%);
+  }
+  .midnight {
+    --bg: #0f0f1a;
+    --card-bg: #1a1a2e;
+    --text: #e0e0f0;
+    --text-secondary: #9090b0;
+    --border: #2a2a4a;
+    --accent: #7c3aed;
+    --accent-hover: #8b5cf6;
+    --danger: #e11d48;
+    --shadow: 0 2px 12px rgba(124,58,237,0.2);
+    --shadow-lg: 0 8px 30px rgba(124,58,237,0.3);
+    --modal-overlay: rgba(124,58,237,0.3);
+    --drag-over-bg: #1e1e3a;
+    --gradient: linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%);
   }
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     background: var(--bg);
     color: var(--text);
-    line-height: 1.5;
+    line-height: 1.6;
     padding: 40px 20px;
+    transition: background 0.35s ease, color 0.35s ease;
   }
   .container { max-width: 1400px; margin: 0 auto; }
   header {
@@ -51,9 +113,11 @@
   .btn {
     border: none; border-radius: 8px; padding: 8px 18px;
     font-size: 14px; font-weight: 500; cursor: pointer;
-    background: var(--accent); color: #fff; transition: background 0.2s;
+    background: var(--accent); color: #fff;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   }
   .btn:hover { background: var(--accent-hover); }
+  .btn:active { transform: scale(0.97); }
   .btn-outline {
     background: transparent; color: var(--accent); border: 1px solid var(--accent);
   }
@@ -75,7 +139,11 @@
   }
   .switch input:checked + .slider { background: var(--accent); }
   .switch input:checked + .slider::before { transform: translateX(20px); }
-  .category { margin-bottom: 28px; transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; border: 1px solid transparent; border-radius: var(--radius); padding: 8px 12px; }
+  .category {
+    margin-bottom: 28px;
+    transition: box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease;
+    border: 1px solid transparent; border-radius: var(--radius); padding: 8px 12px;
+  }
   .editing .category { border-color: var(--border); cursor: default; }
   .category-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -94,11 +162,11 @@
     background: var(--card-bg); border: 1px solid var(--border);
     border-radius: var(--radius); padding: 18px 20px;
     text-decoration: none; color: var(--text);
-    transition: box-shadow 0.2s, border-color 0.2s;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, background 0.3s ease, transform 0.2s ease;
     position: relative; cursor: pointer;
   }
-  .bookmark:hover { box-shadow: var(--shadow); border-color: var(--accent); }
-  .bookmark .favicon { width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0; margin-top: 2px; }
+  .bookmark:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); transform: translateY(-2px); }
+  .bookmark .favicon { width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0; margin-top: 2px; background: var(--bg); }
   .bookmark .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
   .bookmark .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .bookmark .url { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -108,7 +176,7 @@
   .editing .bookmark .bookmark-edit { display: flex; }
   .edit-io { display: none; gap: 6px; }
   .editing .bookmark { cursor: default; }
-  .editing .bookmark:hover { box-shadow: var(--shadow); border-color: var(--border); }
+  .editing .bookmark:hover { box-shadow: var(--shadow); border-color: var(--border); transform: none; }
   .empty-state {
     text-align: center; padding: 60px 20px; color: var(--text-secondary);
   }
@@ -117,11 +185,14 @@
     display: none; position: fixed; inset: 0;
     background: var(--modal-overlay); backdrop-filter: blur(4px);
     align-items: center; justify-content: center; z-index: 100;
+    transition: background 0.35s ease;
   }
   .modal-overlay.active { display: flex; }
   .modal {
     background: var(--card-bg); border-radius: var(--radius);
-    padding: 24px; width: 90%; max-width: 420px; box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+    padding: 24px; width: 90%; max-width: 420px;
+    box-shadow: var(--shadow-lg);
+    transition: background 0.35s ease, box-shadow 0.35s ease;
   }
   .modal h2 { font-size: 20px; margin-bottom: 18px; }
   .modal label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: var(--text-secondary); }
@@ -129,8 +200,9 @@
     width: 100%; padding: 10px 12px; border: 1px solid var(--border);
     border-radius: 8px; font-size: 14px; margin-bottom: 14px;
     background: var(--bg); color: var(--text);
+    transition: border-color 0.2s ease, background 0.35s ease, color 0.35s ease;
   }
-  .modal input:focus, .modal select:focus { outline: none; border-color: var(--accent); }
+  .modal input:focus, .modal select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 20%, transparent); }
   .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
   .modal .btn-cancel { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
   .modal .btn-cancel:hover { background: var(--bg); }
@@ -151,16 +223,57 @@
   }
   .toast.show { opacity: 1; }
   .add-btn { font-size: 13px; }
-  select.lang-select {
+  select.theme-select, select.lang-select {
     border: 1px solid var(--border); background: var(--card-bg); color: var(--text);
     font-size: 13px; cursor: pointer; padding: 4px 8px; outline: none;
     border-radius: 8px;
+    transition: border-color 0.2s ease, background 0.35s ease, color 0.35s ease;
   }
-  select.lang-select:hover { border-color: var(--accent); }
+  select.theme-select:hover, select.lang-select:hover { border-color: var(--accent); }
+  select.theme-select:focus, select.lang-select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 20%, transparent); }
+  ::selection { background: var(--accent); color: #fff; }
+  ::-webkit-scrollbar { width: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+  .welcome {
+    max-width: 600px; margin: 80px auto; text-align: center;
+  }
+  .welcome-icon {
+    font-size: 56px; margin-bottom: 20px; display: block;
+  }
+  .welcome h2 {
+    font-size: 32px; font-weight: 700; letter-spacing: -0.5px;
+    margin-bottom: 12px;
+  }
+  .welcome p {
+    font-size: 16px; color: var(--text-secondary);
+    margin-bottom: 36px; line-height: 1.6;
+  }
+  .welcome-features {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 14px; margin-bottom: 36px;
+  }
+  .welcome-feature {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 22px 14px;
+    transition: box-shadow 0.3s, border-color 0.3s, background 0.3s;
+  }
+  .welcome-feature:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); }
+  .welcome-feature .icon { font-size: 28px; margin-bottom: 8px; display: block; }
+  .welcome-feature h3 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+  .welcome-feature p { font-size: 12px; margin-bottom: 0; color: var(--text-secondary); }
+  .welcome-actions {
+    display: flex; flex-wrap: wrap; gap: 12px; justify-content: center;
+  }
+  .welcome-actions .btn { padding: 10px 24px; font-size: 15px; }
   @media (max-width: 600px) {
+    .welcome { margin: 40px 16px; }
+    .welcome-features { grid-template-columns: 1fr; }
     body { padding: 20px 12px; }
     h1 { font-size: 22px; }
     .bookmarks { grid-template-columns: 1fr; }
+    .bookmark:hover { transform: none; }
   }
 </style>
 </head>
@@ -172,7 +285,7 @@
       <button class="btn btn-sm btn-outline edit-title-btn" onclick="editTitle()" title="Edit title" style="display:none;padding:2px 8px;font-size:14px">✎</button>
     </div>
     <div style="display:flex;align-items:center;gap:16px">
-      <button class="btn btn-sm btn-outline" id="dark-toggle" style="padding:6px 12px;font-size:16px;line-height:1" title="Toggle dark mode">☾</button>
+      <select class="theme-select" id="theme-select" onchange="setTheme(this.value)" title="Change theme"></select>
       <span class="edit-io">
         <select class="lang-select" id="lang-select" onchange="setLang(this.value)"></select>
         <button class="btn btn-sm btn-outline" id="export-btn" onclick="exportData()">Export</button>
@@ -221,7 +334,12 @@ const LANG = {
     confirmDeleteCat: 'Delete category "{name}" and all its bookmarks?',
     confirmDeleteBm: 'Delete this bookmark?',
     importedCount: 'Imported {n} bookmarks', importedCat: 'Imported category "{name}"',
-    toggleDark: 'Toggle dark mode', exportBm: 'Export', importBm: 'Import',
+    themeSystem: 'System',     toggleDark: 'Toggle dark mode', exportBm: 'Export', importBm: 'Import',
+    welcomeTitle: 'Welcome!', welcomeDesc: 'Organize your favorite links, tools, and resources in one place.',
+    welcomeCat: 'Add categories', welcomeCatDesc: 'Group links by topic or project',
+    welcomeLink: 'Add bookmarks', welcomeLinkDesc: 'Save your favorite URLs',
+    welcomeImport: 'Bulk import', welcomeImportDesc: 'Load from a JSON file',
+    addSamples: 'Add sample bookmarks', startFresh: 'Start fresh',
     exportCat: 'Export', importCatLabel: 'Import',
   },
   fr: { name: 'FR',
@@ -243,7 +361,12 @@ const LANG = {
     confirmDeleteCat: 'Supprimer la catégorie "{name}" et tous ses favoris ?',
     confirmDeleteBm: 'Supprimer ce favori ?',
     importedCount: '{n} favoris importés', importedCat: 'Catégorie "{name}" importée',
-    toggleDark: 'Activer le mode sombre', exportBm: 'Export', importBm: 'Import',
+    themeSystem: 'Système', toggleDark: 'Activer le mode sombre', exportBm: 'Export', importBm: 'Import',
+    welcomeTitle: 'Bienvenue !', welcomeDesc: 'Organisez vos liens, outils et ressources préférés en un seul endroit.',
+    welcomeCat: 'Ajouter des catégories', welcomeCatDesc: 'Regroupez vos liens par thème ou projet',
+    welcomeLink: 'Ajouter des favoris', welcomeLinkDesc: 'Enregistrez vos URL préférées',
+    welcomeImport: 'Importer en bloc', welcomeImportDesc: 'Chargez depuis un fichier JSON',
+    addSamples: 'Ajouter des exemples', startFresh: 'Commencer à zéro',
     exportCat: 'Export', importCatLabel: 'Import',
   },
   de: { name: 'DE',
@@ -265,7 +388,12 @@ const LANG = {
     confirmDeleteCat: 'Kategorie "{name}" und alle Lesezeichen löschen?',
     confirmDeleteBm: 'Dieses Lesezeichen löschen?',
     importedCount: '{n} Lesezeichen importiert', importedCat: 'Kategorie "{name}" importiert',
-    toggleDark: 'Dark Mode umschalten', exportBm: 'Export', importBm: 'Import',
+    themeSystem: 'System', toggleDark: 'Dark Mode umschalten', exportBm: 'Export', importBm: 'Import',
+    welcomeTitle: 'Willkommen!', welcomeDesc: 'Organisieren Sie Ihre Lieblingslinks, -tools und -ressourcen an einem Ort.',
+    welcomeCat: 'Kategorien hinzufügen', welcomeCatDesc: 'Links nach Thema oder Projekt gruppieren',
+    welcomeLink: 'Lesezeichen hinzufügen', welcomeLinkDesc: 'Speichern Sie Ihre Lieblings-URLs',
+    welcomeImport: 'Massenimport', welcomeImportDesc: 'Aus einer JSON-Datei laden',
+    addSamples: 'Beispiele hinzufügen', startFresh: 'Neu beginnen',
     exportCat: 'Export', importCatLabel: 'Import',
   },
   ja: { name: '日本語',
@@ -287,7 +415,12 @@ const LANG = {
     confirmDeleteCat: 'カテゴリ「{name}」と全てのブックマークを削除しますか？',
     confirmDeleteBm: 'このブックマークを削除しますか？',
     importedCount: '{n}件のブックマークをインポートしました', importedCat: 'カテゴリ「{name}」をインポートしました',
-    toggleDark: 'ダークモード切替', exportBm: 'エクスポート', importBm: 'インポート',
+    themeSystem: 'システム', toggleDark: 'ダークモード切替', exportBm: 'エクスポート', importBm: 'インポート',
+    welcomeTitle: 'ようこそ！', welcomeDesc: 'お気に入りのリンク、ツール、リソースを一箇所に整理しましょう。',
+    welcomeCat: 'カテゴリを追加', welcomeCatDesc: 'トピックやプロジェクトでリンクをグループ化',
+    welcomeLink: 'ブックマークを追加', welcomeLinkDesc: 'お気に入りのURLを保存',
+    welcomeImport: '一括インポート', welcomeImportDesc: 'JSONファイルから読み込み',
+    addSamples: 'サンプルを追加', startFresh: '新しく始める',
     exportCat: 'エクスポート', importCatLabel: 'インポート',
   },
   zh: { name: '中文',
@@ -309,7 +442,12 @@ const LANG = {
     confirmDeleteCat: '删除分类"{name}"及其所有书签？',
     confirmDeleteBm: '删除此书签？',
     importedCount: '已导入{n}个书签', importedCat: '已导入分类"{name}"',
-    toggleDark: '切换深色模式', exportBm: '导出', importBm: '导入',
+    themeSystem: '系统', toggleDark: '切换深色模式', exportBm: '导出', importBm: '导入',
+    welcomeTitle: '欢迎！', welcomeDesc: '在一个地方整理您喜爱的链接、工具和资源。',
+    welcomeCat: '添加分类', welcomeCatDesc: '按主题或项目对链接进行分组',
+    welcomeLink: '添加书签', welcomeLinkDesc: '保存您喜爱的网址',
+    welcomeImport: '批量导入', welcomeImportDesc: '从JSON文件加载',
+    addSamples: '添加示例', startFresh: '重新开始',
     exportCat: '导出', importCatLabel: '导入',
   },
   es: { name: 'ES',
@@ -331,7 +469,12 @@ const LANG = {
     confirmDeleteCat: '¿Eliminar la categoría "{name}" y todos sus marcadores?',
     confirmDeleteBm: '¿Eliminar este marcador?',
     importedCount: '{n} marcadores importados', importedCat: 'Categoría "{name}" importada',
-    toggleDark: 'Cambiar modo oscuro', exportBm: 'Exportar', importBm: 'Importar',
+    themeSystem: 'Sistema', toggleDark: 'Cambiar modo oscuro', exportBm: 'Exportar', importBm: 'Importar',
+    welcomeTitle: '¡Bienvenido!', welcomeDesc: 'Organiza tus enlaces, herramientas y recursos favoritos en un solo lugar.',
+    welcomeCat: 'Añadir categorías', welcomeCatDesc: 'Agrupa enlaces por tema o proyecto',
+    welcomeLink: 'Añadir marcadores', welcomeLinkDesc: 'Guarda tus URL favoritas',
+    welcomeImport: 'Importación masiva', welcomeImportDesc: 'Cargar desde un archivo JSON',
+    addSamples: 'Añadir ejemplos', startFresh: 'Empezar de cero',
     exportCat: 'Exportar', importCatLabel: 'Importar',
   },
 };
@@ -376,20 +519,37 @@ const DEFAULT_DATA = {
   ],
 };
 
-let data = loadData();
+let data = null;
 let editMode = false;
 let dragSource = null;
+let welcome = true;
 
 function loadData() {
   try {
     const raw = localStorage.getItem('homepage');
     if (raw) return JSON.parse(raw);
   } catch (_) {}
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+  return null;
 }
 
 function saveData() {
+  welcome = false;
   localStorage.setItem('homepage', JSON.stringify(data));
+}
+
+function loadSamples() {
+  data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  saveData();
+  render();
+  toast(_('toastCatAdded'));
+}
+
+function startFresh() {
+  data = { title: 'Bookmarks', categories: [] };
+  saveData();
+  document.getElementById('edit-switch').checked = true;
+  editMode = true;
+  render();
 }
 
 function toast(msg) {
@@ -409,6 +569,40 @@ function render() {
   document.getElementById('edit-label').textContent = _('edit');
   document.getElementById('export-btn').textContent = _('exportBm');
   document.getElementById('import-btn').textContent = _('importBm');
+
+  if (welcome) {
+    document.getElementById('page-title').textContent = _('welcomeTitle');
+    document.title = _('welcomeTitle');
+    container.innerHTML = `
+      <div class="welcome">
+        <span class="welcome-icon">⭐</span>
+        <h2>${_('welcomeTitle')}</h2>
+        <p>${_('welcomeDesc')}</p>
+        <div class="welcome-features">
+          <div class="welcome-feature">
+            <span class="icon">📂</span>
+            <h3>${_('welcomeCat')}</h3>
+            <p>${_('welcomeCatDesc')}</p>
+          </div>
+          <div class="welcome-feature">
+            <span class="icon">🔗</span>
+            <h3>${_('welcomeLink')}</h3>
+            <p>${_('welcomeLinkDesc')}</p>
+          </div>
+          <div class="welcome-feature">
+            <span class="icon">📥</span>
+            <h3>${_('welcomeImport')}</h3>
+            <p>${_('welcomeImportDesc')}</p>
+          </div>
+        </div>
+        <div class="welcome-actions">
+          <button class="btn" onclick="loadSamples()">✨ ${_('addSamples')}</button>
+          <button class="btn btn-outline" onclick="startFresh()">🚀 ${_('startFresh')}</button>
+        </div>
+      </div>
+    `;
+    return;
+  }
 
   if (data.categories.length === 0) {
     container.innerHTML = `
@@ -754,26 +948,46 @@ function importCategory(event) {
   reader.readAsText(file); event.target.value = '';
 }
 
-// DARK MODE
-function setTheme(theme) {
-  document.documentElement.classList.remove('dark', 'light');
-  if (theme === 'dark') document.documentElement.classList.add('dark');
-  else if (theme === 'light') document.documentElement.classList.add('light');
-  localStorage.setItem('homepage-theme', theme);
-  document.getElementById('dark-toggle').textContent = theme === 'dark' ? '☀' : '☾';
+// THEMES
+const THEMES = ['system', 'light', 'dark', 'ocean', 'forest', 'sunset', 'midnight'];
+let themeMediaListener = null;
+
+function populateThemeSelect() {
+  const sel = document.getElementById('theme-select');
+  THEMES.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t;
+    if (t === 'system') opt.textContent = _('themeSystem');
+    else opt.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+    sel.appendChild(opt);
+  });
 }
 
-const savedTheme = localStorage.getItem('homepage-theme');
-if (savedTheme) setTheme(savedTheme);
-else document.getElementById('dark-toggle').textContent =
-  window.matchMedia('(prefers-color-scheme: dark)').matches ? '☀' : '☾';
+function setTheme(theme) {
+  document.documentElement.classList.remove(...THEMES.slice(1));
+  if (themeMediaListener) {
+    window.matchMedia('(prefers-color-scheme: dark)').removeEventListener('change', themeMediaListener);
+    themeMediaListener = null;
+  }
+  if (theme === 'system') {
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    document.documentElement.classList.add(mq.matches ? 'dark' : 'light');
+    themeMediaListener = () => {
+      document.documentElement.classList.remove('dark', 'light');
+      document.documentElement.classList.add(mq.matches ? 'dark' : 'light');
+    };
+    mq.addEventListener('change', themeMediaListener);
+  } else {
+    document.documentElement.classList.add(theme);
+  }
+  localStorage.setItem('homepage-theme', theme);
+  document.getElementById('theme-select').value = theme;
+}
 
-document.getElementById('dark-toggle').addEventListener('click', () => {
-  const isDark = document.documentElement.classList.contains('dark') ||
-    (!document.documentElement.classList.contains('light') &&
-     window.matchMedia('(prefers-color-scheme: dark)').matches);
-  setTheme(isDark ? 'light' : 'dark');
-});
+// THEME INIT
+populateThemeSelect();
+const savedTheme = localStorage.getItem('homepage-theme');
+setTheme(savedTheme || 'system');
 
 // LANG
 const langSelect = document.getElementById('lang-select');
@@ -792,6 +1006,13 @@ document.getElementById('edit-switch').addEventListener('change', function() {
 });
 
 // INIT
+data = loadData();
+if (!data) {
+  welcome = true;
+  data = { title: 'Bookmarks', categories: [] };
+} else {
+  welcome = false;
+}
 render();
 </script>
 </body>
