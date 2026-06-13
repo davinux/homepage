@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homepage</title>
+<style>
+  :root {
+    --bg: #f5f5f7;
+    --card-bg: #ffffff;
+    --text: #1d1d1f;
+    --text-secondary: #86868b;
+    --border: #d2d2d7;
+    --accent: #0071e3;
+    --accent-hover: #0077ed;
+    --danger: #ff3b30;
+    --radius: 14px;
+    --shadow: 0 2px 12px rgba(0,0,0,0.08);
+    --modal-overlay: rgba(0,0,0,0.4);
+    --drag-over-bg: #f0f7ff;
+  }
+  .dark {
+    --bg: #1c1c1e;
+    --card-bg: #2c2c2e;
+    --text: #f5f5f7;
+    --text-secondary: #98989d;
+    --border: #3a3a3c;
+    --accent: #0a84ff;
+    --accent-hover: #409cff;
+    --shadow: 0 2px 12px rgba(0,0,0,0.3);
+    --modal-overlay: rgba(0,0,0,0.6);
+    --drag-over-bg: #1c2a3a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not(.light) { --bg: #1c1c1e; --card-bg: #2c2c2e; --text: #f5f5f7; --text-secondary: #98989d; --border: #3a3a3c; --accent: #0a84ff; --accent-hover: #409cff; --shadow: 0 2px 12px rgba(0,0,0,0.3); --modal-overlay: rgba(0,0,0,0.6); --drag-over-bg: #1c2a3a; }
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.5;
+    padding: 40px 20px;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 32px; flex-wrap: wrap; gap: 12px;
+  }
+  h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.5px; }
+  .btn {
+    border: none; border-radius: 8px; padding: 8px 18px;
+    font-size: 14px; font-weight: 500; cursor: pointer;
+    background: var(--accent); color: #fff; transition: background 0.2s;
+  }
+  .btn:hover { background: var(--accent-hover); }
+  .btn-outline {
+    background: transparent; color: var(--accent); border: 1px solid var(--accent);
+  }
+  .btn-outline:hover { background: var(--accent); color: #fff; }
+  .btn-danger { background: var(--danger); }
+  .btn-danger:hover { background: #d62d20; }
+  .btn-sm { padding: 4px 12px; font-size: 12px; }
+  .edit-toggle { display: flex; align-items: center; gap: 8px; }
+  .edit-toggle label { font-size: 14px; color: var(--text-secondary); cursor: pointer; user-select: none; }
+  .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; cursor: pointer; inset: 0;
+    background: var(--border); border-radius: 24px; transition: 0.3s;
+  }
+  .slider::before {
+    content: ''; position: absolute; height: 18px; width: 18px;
+    left: 3px; bottom: 3px; background: #fff; border-radius: 50%; transition: 0.3s;
+  }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider::before { transform: translateX(20px); }
+  .category { margin-bottom: 28px; transition: box-shadow 0.2s, border-color 0.2s, background 0.2s; border: 1px solid transparent; border-radius: var(--radius); padding: 8px 12px; }
+  .editing .category { border-color: var(--border); cursor: default; }
+  .category-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; gap: 8px;
+  }
+  .category-title {
+    font-size: 16px; font-weight: 600; color: var(--text-secondary);
+    letter-spacing: 0.5px;
+  }
+  .edit-actions { display: flex; gap: 6px; }
+  .bookmarks {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
+  }
+  .bookmark {
+    display: flex; align-items: flex-start; gap: 14px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 18px 20px;
+    text-decoration: none; color: var(--text);
+    transition: box-shadow 0.2s, border-color 0.2s;
+    position: relative; cursor: pointer;
+  }
+  .bookmark:hover { box-shadow: var(--shadow); border-color: var(--accent); }
+  .bookmark .favicon { width: 24px; height: 24px; border-radius: 5px; flex-shrink: 0; margin-top: 2px; }
+  .bookmark .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+  .bookmark .title { font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bookmark .url { font-size: 12px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .bookmark .bookmark-edit {
+    display: none; gap: 4px; flex-shrink: 0;
+  }
+  .editing .bookmark .bookmark-edit { display: flex; }
+  .edit-io { display: none; gap: 6px; }
+  .editing .bookmark { cursor: default; }
+  .editing .bookmark:hover { box-shadow: var(--shadow); border-color: var(--border); }
+  .empty-state {
+    text-align: center; padding: 60px 20px; color: var(--text-secondary);
+  }
+  .empty-state p { font-size: 16px; margin-bottom: 16px; }
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: var(--modal-overlay); backdrop-filter: blur(4px);
+    align-items: center; justify-content: center; z-index: 100;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal {
+    background: var(--card-bg); border-radius: var(--radius);
+    padding: 24px; width: 90%; max-width: 420px; box-shadow: 0 8px 40px rgba(0,0,0,0.2);
+  }
+  .modal h2 { font-size: 20px; margin-bottom: 18px; }
+  .modal label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 4px; color: var(--text-secondary); }
+  .modal input, .modal select {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--border);
+    border-radius: 8px; font-size: 14px; margin-bottom: 14px;
+    background: var(--bg); color: var(--text);
+  }
+  .modal input:focus, .modal select:focus { outline: none; border-color: var(--accent); }
+  .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
+  .modal .btn-cancel { background: transparent; color: var(--text-secondary); border: 1px solid var(--border); }
+  .modal .btn-cancel:hover { background: var(--bg); }
+  .hidden { display: none !important; }
+  .drag-handle {
+    display: none; cursor: grab; color: var(--text-secondary);
+    font-size: 16px; padding: 0 4px; user-select: none;
+  }
+  .editing .drag-handle { display: block; }
+  .bookmark.dragging, .category.dragging { opacity: 0.5; border-style: dashed; }
+  .bookmark.drag-over { border-color: var(--accent); border-style: dashed; background: var(--drag-over-bg); }
+  .category.drag-over { border-color: var(--accent); border-style: dashed; background: var(--drag-over-bg); }
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    background: #323232; color: #f5f5f7; padding: 10px 24px;
+    border-radius: 8px; font-size: 14px; z-index: 200; opacity: 0;
+    transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .add-btn { font-size: 13px; }
+  select.lang-select {
+    border: 1px solid var(--border); background: var(--card-bg); color: var(--text);
+    font-size: 13px; cursor: pointer; padding: 4px 8px; outline: none;
+    border-radius: 8px;
+  }
+  select.lang-select:hover { border-color: var(--accent); }
+  @media (max-width: 600px) {
+    body { padding: 20px 12px; }
+    h1 { font-size: 22px; }
+    .bookmarks { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <header>
+    <div style="display:flex;align-items:center;gap:10px">
+      <h1 id="page-title">Bookmarks</h1>
+      <button class="btn btn-sm btn-outline edit-title-btn" onclick="editTitle()" title="Edit title" style="display:none;padding:2px 8px;font-size:14px">✎</button>
+    </div>
+    <div style="display:flex;align-items:center;gap:16px">
+      <button class="btn btn-sm btn-outline" id="dark-toggle" style="padding:6px 12px;font-size:16px;line-height:1" title="Toggle dark mode">☾</button>
+      <span class="edit-io">
+        <select class="lang-select" id="lang-select" onchange="setLang(this.value)"></select>
+        <button class="btn btn-sm btn-outline" id="export-btn" onclick="exportData()">Export</button>
+        <button class="btn btn-sm btn-outline" id="import-btn" onclick="document.getElementById('import-input').click()">Import</button>
+        <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
+      </span>
+      <div class="edit-toggle">
+        <label for="edit-switch" id="edit-label">Edit</label>
+        <label class="switch">
+          <input type="checkbox" id="edit-switch">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+  </header>
+  <div id="content"></div>
+</div>
+
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <h2 id="modal-title">Add Bookmark</h2>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const LANG = {
+  en: { name: 'EN',
+    edit: 'Edit', link: '+ Link', cat: '+ Category', importCat: '↑ Category',
+    noBookmarks: 'No bookmarks yet', addCat: 'Add Category',
+    addBm: 'Add Bookmark', editBm: 'Edit Bookmark', addCatTitle: 'Add Category', editCatTitle: 'Edit Category',
+    editTitleModal: 'Edit Title', confirm: 'Confirm',
+    titleLabel: 'Title', urlLabel: 'URL', catNameLabel: 'Category Name', pageTitleLabel: 'Page Title',
+    cancel: 'Cancel', add: 'Add', save: 'Save', delete: 'Delete',
+    catNamePlaceholder: 'e.g. News', bmTitlePlaceholder: 'My Link', bmUrlPlaceholder: 'https://example.com',
+    toastCatName: 'Enter a category name', toastBmTitle: 'Enter a title', toastBmUrl: 'Enter a URL',
+    toastCatAdded: 'Category added', toastCatRenamed: 'Category renamed', toastCatDeleted: 'Category deleted',
+    toastBmAdded: 'Bookmark added', toastBmUpdated: 'Bookmark updated', toastBmDeleted: 'Bookmark deleted',
+    toastTitleUpdated: 'Title updated', toastExported: 'Exported', toastCatExported: 'Category exported',
+    toastReordered: 'Reordered', toastCatReordered: 'Category reordered',
+    toastInvalidCategories: 'Invalid file: missing "categories" array',
+    toastInvalidCatFormat: 'Invalid category format', toastInvalidBmFormat: 'Invalid bookmark format',
+    toastInvalidJSON: 'Invalid JSON file', toastInvalidCatFile: 'Invalid category file',
+    confirmDeleteCat: 'Delete category "{name}" and all its bookmarks?',
+    confirmDeleteBm: 'Delete this bookmark?',
+    importedCount: 'Imported {n} bookmarks', importedCat: 'Imported category "{name}"',
+    toggleDark: 'Toggle dark mode', exportBm: 'Export', importBm: 'Import',
+    exportCat: 'Export', importCatLabel: 'Import',
+  },
+  fr: { name: 'FR',
+    edit: 'Éditer', link: '+ Lien', cat: '+ Catégorie', importCat: '↑ Catégorie',
+    noBookmarks: 'Pas encore de favoris', addCat: 'Ajouter une catégorie',
+    addBm: 'Ajouter un favori', editBm: 'Modifier le favori', addCatTitle: 'Ajouter une catégorie', editCatTitle: 'Modifier la catégorie',
+    editTitleModal: 'Modifier le titre', confirm: 'Confirmer',
+    titleLabel: 'Titre', urlLabel: 'URL', catNameLabel: 'Nom de la catégorie', pageTitleLabel: 'Titre de la page',
+    cancel: 'Annuler', add: 'Ajouter', save: 'Enregistrer', delete: 'Supprimer',
+    catNamePlaceholder: 'ex. Actualités', bmTitlePlaceholder: 'Mon lien', bmUrlPlaceholder: 'https://exemple.com',
+    toastCatName: 'Entrez un nom de catégorie', toastBmTitle: 'Entrez un titre', toastBmUrl: 'Entrez une URL',
+    toastCatAdded: 'Catégorie ajoutée', toastCatRenamed: 'Catégorie renommée', toastCatDeleted: 'Catégorie supprimée',
+    toastBmAdded: 'Favori ajouté', toastBmUpdated: 'Favori modifié', toastBmDeleted: 'Favori supprimé',
+    toastTitleUpdated: 'Titre mis à jour', toastExported: 'Exporté', toastCatExported: 'Catégorie exportée',
+    toastReordered: 'Réorganisé', toastCatReordered: 'Catégorie réorganisée',
+    toastInvalidCategories: 'Fichier invalide : tableau "categories" manquant',
+    toastInvalidCatFormat: 'Format de catégorie invalide', toastInvalidBmFormat: 'Format de favori invalide',
+    toastInvalidJSON: 'Fichier JSON invalide', toastInvalidCatFile: 'Fichier de catégorie invalide',
+    confirmDeleteCat: 'Supprimer la catégorie "{name}" et tous ses favoris ?',
+    confirmDeleteBm: 'Supprimer ce favori ?',
+    importedCount: '{n} favoris importés', importedCat: 'Catégorie "{name}" importée',
+    toggleDark: 'Activer le mode sombre', exportBm: 'Export', importBm: 'Import',
+    exportCat: 'Export', importCatLabel: 'Import',
+  },
+  de: { name: 'DE',
+    edit: 'Bearbeiten', link: '+ Link', cat: '+ Kategorie', importCat: '↑ Kategorie',
+    noBookmarks: 'Noch keine Lesezeichen', addCat: 'Kategorie hinzufügen',
+    addBm: 'Lesezeichen hinzufügen', editBm: 'Lesezeichen bearbeiten', addCatTitle: 'Kategorie hinzufügen', editCatTitle: 'Kategorie bearbeiten',
+    editTitleModal: 'Titel bearbeiten', confirm: 'Bestätigen',
+    titleLabel: 'Titel', urlLabel: 'URL', catNameLabel: 'Kategoriename', pageTitleLabel: 'Seitentitel',
+    cancel: 'Abbrechen', add: 'Hinzufügen', save: 'Speichern', delete: 'Löschen',
+    catNamePlaceholder: 'z.B. Nachrichten', bmTitlePlaceholder: 'Mein Link', bmUrlPlaceholder: 'https://beispiel.de',
+    toastCatName: 'Kategorienamen eingeben', toastBmTitle: 'Titel eingeben', toastBmUrl: 'URL eingeben',
+    toastCatAdded: 'Kategorie hinzugefügt', toastCatRenamed: 'Kategorie umbenannt', toastCatDeleted: 'Kategorie gelöscht',
+    toastBmAdded: 'Lesezeichen hinzugefügt', toastBmUpdated: 'Lesezeichen aktualisiert', toastBmDeleted: 'Lesezeichen gelöscht',
+    toastTitleUpdated: 'Titel aktualisiert', toastExported: 'Exportiert', toastCatExported: 'Kategorie exportiert',
+    toastReordered: 'Neu angeordnet', toastCatReordered: 'Kategorie neu angeordnet',
+    toastInvalidCategories: 'Ungültige Datei: "categories"-Array fehlt',
+    toastInvalidCatFormat: 'Ungültiges Kategorieformat', toastInvalidBmFormat: 'Ungültiges Lesezeichenformat',
+    toastInvalidJSON: 'Ungültige JSON-Datei', toastInvalidCatFile: 'Ungültige Kategoriedatei',
+    confirmDeleteCat: 'Kategorie "{name}" und alle Lesezeichen löschen?',
+    confirmDeleteBm: 'Dieses Lesezeichen löschen?',
+    importedCount: '{n} Lesezeichen importiert', importedCat: 'Kategorie "{name}" importiert',
+    toggleDark: 'Dark Mode umschalten', exportBm: 'Export', importBm: 'Import',
+    exportCat: 'Export', importCatLabel: 'Import',
+  },
+  ja: { name: '日本語',
+    edit: '編集', link: '+ リンク', cat: '+ カテゴリ', importCat: '↑ カテゴリ',
+    noBookmarks: 'ブックマークがありません', addCat: 'カテゴリを追加',
+    addBm: 'ブックマークを追加', editBm: 'ブックマークを編集', addCatTitle: 'カテゴリを追加', editCatTitle: 'カテゴリを編集',
+    editTitleModal: 'タイトルを編集', confirm: '確認',
+    titleLabel: 'タイトル', urlLabel: 'URL', catNameLabel: 'カテゴリ名', pageTitleLabel: 'ページタイトル',
+    cancel: 'キャンセル', add: '追加', save: '保存', delete: '削除',
+    catNamePlaceholder: '例: ニュース', bmTitlePlaceholder: 'マイリンク', bmUrlPlaceholder: 'https://example.com',
+    toastCatName: 'カテゴリ名を入力してください', toastBmTitle: 'タイトルを入力してください', toastBmUrl: 'URLを入力してください',
+    toastCatAdded: 'カテゴリを追加しました', toastCatRenamed: 'カテゴリ名を変更しました', toastCatDeleted: 'カテゴリを削除しました',
+    toastBmAdded: 'ブックマークを追加しました', toastBmUpdated: 'ブックマークを更新しました', toastBmDeleted: 'ブックマークを削除しました',
+    toastTitleUpdated: 'タイトルを更新しました', toastExported: 'エクスポートしました', toastCatExported: 'カテゴリをエクスポートしました',
+    toastReordered: '並べ替えました', toastCatReordered: 'カテゴリを並べ替えました',
+    toastInvalidCategories: '無効なファイル: "categories"配列がありません',
+    toastInvalidCatFormat: '無効なカテゴリ形式です', toastInvalidBmFormat: '無効なブックマーク形式です',
+    toastInvalidJSON: '無効なJSONファイルです', toastInvalidCatFile: '無効なカテゴリファイルです',
+    confirmDeleteCat: 'カテゴリ「{name}」と全てのブックマークを削除しますか？',
+    confirmDeleteBm: 'このブックマークを削除しますか？',
+    importedCount: '{n}件のブックマークをインポートしました', importedCat: 'カテゴリ「{name}」をインポートしました',
+    toggleDark: 'ダークモード切替', exportBm: 'エクスポート', importBm: 'インポート',
+    exportCat: 'エクスポート', importCatLabel: 'インポート',
+  },
+  zh: { name: '中文',
+    edit: '编辑', link: '+ 链接', cat: '+ 分类', importCat: '↑ 分类',
+    noBookmarks: '还没有书签', addCat: '添加分类',
+    addBm: '添加书签', editBm: '编辑书签', addCatTitle: '添加分类', editCatTitle: '编辑分类',
+    editTitleModal: '编辑标题', confirm: '确认',
+    titleLabel: '标题', urlLabel: 'URL', catNameLabel: '分类名称', pageTitleLabel: '页面标题',
+    cancel: '取消', add: '添加', save: '保存', delete: '删除',
+    catNamePlaceholder: '例如：新闻', bmTitlePlaceholder: '我的链接', bmUrlPlaceholder: 'https://example.com',
+    toastCatName: '请输入分类名称', toastBmTitle: '请输入标题', toastBmUrl: '请输入URL',
+    toastCatAdded: '分类已添加', toastCatRenamed: '分类已重命名', toastCatDeleted: '分类已删除',
+    toastBmAdded: '书签已添加', toastBmUpdated: '书签已更新', toastBmDeleted: '书签已删除',
+    toastTitleUpdated: '标题已更新', toastExported: '已导出', toastCatExported: '分类已导出',
+    toastReordered: '已重新排序', toastCatReordered: '分类已重新排序',
+    toastInvalidCategories: '无效文件：缺少"categories"数组',
+    toastInvalidCatFormat: '无效的分类格式', toastInvalidBmFormat: '无效的书签格式',
+    toastInvalidJSON: '无效的JSON文件', toastInvalidCatFile: '无效的分类文件',
+    confirmDeleteCat: '删除分类"{name}"及其所有书签？',
+    confirmDeleteBm: '删除此书签？',
+    importedCount: '已导入{n}个书签', importedCat: '已导入分类"{name}"',
+    toggleDark: '切换深色模式', exportBm: '导出', importBm: '导入',
+    exportCat: '导出', importCatLabel: '导入',
+  },
+  es: { name: 'ES',
+    edit: 'Editar', link: '+ Enlace', cat: '+ Categoría', importCat: '↑ Categoría',
+    noBookmarks: 'Sin marcadores aún', addCat: 'Añadir categoría',
+    addBm: 'Añadir marcador', editBm: 'Editar marcador', addCatTitle: 'Añadir categoría', editCatTitle: 'Editar categoría',
+    editTitleModal: 'Editar título', confirm: 'Confirmar',
+    titleLabel: 'Título', urlLabel: 'URL', catNameLabel: 'Nombre de categoría', pageTitleLabel: 'Título de página',
+    cancel: 'Cancelar', add: 'Añadir', save: 'Guardar', delete: 'Eliminar',
+    catNamePlaceholder: 'ej. Noticias', bmTitlePlaceholder: 'Mi enlace', bmUrlPlaceholder: 'https://ejemplo.com',
+    toastCatName: 'Ingrese un nombre de categoría', toastBmTitle: 'Ingrese un título', toastBmUrl: 'Ingrese una URL',
+    toastCatAdded: 'Categoría añadida', toastCatRenamed: 'Categoría renombrada', toastCatDeleted: 'Categoría eliminada',
+    toastBmAdded: 'Marcador añadido', toastBmUpdated: 'Marcador actualizado', toastBmDeleted: 'Marcador eliminado',
+    toastTitleUpdated: 'Título actualizado', toastExported: 'Exportado', toastCatExported: 'Categoría exportada',
+    toastReordered: 'Reordenado', toastCatReordered: 'Categoría reordenada',
+    toastInvalidCategories: 'Archivo inválido: falta el array "categories"',
+    toastInvalidCatFormat: 'Formato de categoría inválido', toastInvalidBmFormat: 'Formato de marcador inválido',
+    toastInvalidJSON: 'Archivo JSON inválido', toastInvalidCatFile: 'Archivo de categoría inválido',
+    confirmDeleteCat: '¿Eliminar la categoría "{name}" y todos sus marcadores?',
+    confirmDeleteBm: '¿Eliminar este marcador?',
+    importedCount: '{n} marcadores importados', importedCat: 'Categoría "{name}" importada',
+    toggleDark: 'Cambiar modo oscuro', exportBm: 'Exportar', importBm: 'Importar',
+    exportCat: 'Exportar', importCatLabel: 'Importar',
+  },
+};
+
+let _lang = 'en';
+const LANG_KEYS = Object.keys(LANG);
+
+function _(key, vars) {
+  let s = (LANG[_lang] && LANG[_lang][key]) || LANG.en[key] || key;
+  if (vars) for (const k in vars) s = s.replace('{' + k + '}', vars[k]);
+  return s;
+}
+
+function detectLang() {
+  const stored = localStorage.getItem('homepage-lang');
+  if (stored && LANG[stored]) return stored;
+  const nav = (navigator.language || navigator.userLanguage || '').split('-')[0];
+  return LANG[nav] ? nav : 'en';
+}
+
+function setLang(lang) {
+  _lang = lang;
+  localStorage.setItem('homepage-lang', lang);
+  document.getElementById('lang-select').value = lang;
+  render();
+  document.querySelectorAll('.toast').forEach(el => el.classList.remove('show'));
+}
+
+const DEFAULT_DATA = {
+  title: 'Bookmarks',
+  categories: [
+    { name: 'Essentials', bookmarks: [
+      { title: 'GitHub', url: 'https://github.com' },
+      { title: 'Hacker News', url: 'https://news.ycombinator.com' },
+      { title: 'Reddit', url: 'https://reddit.com' },
+    ]},
+    { name: 'Tools', bookmarks: [
+      { title: 'ChatGPT', url: 'https://chat.openai.com' },
+      { title: 'Excalidraw', url: 'https://excalidraw.com' },
+      { title: 'Regex 101', url: 'https://regex101.com' },
+    ]},
+  ],
+};
+
+let data = loadData();
+let editMode = false;
+let dragSource = null;
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem('homepage');
+    if (raw) return JSON.parse(raw);
+  } catch (_) {}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+
+function saveData() {
+  localStorage.setItem('homepage', JSON.stringify(data));
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+function render() {
+  const container = document.getElementById('content');
+  const isEditing = editMode;
+  container.className = isEditing ? 'editing' : '';
+  document.querySelectorAll('.edit-io').forEach(el => el.style.display = isEditing ? 'flex' : 'none');
+  document.querySelectorAll('.edit-title-btn').forEach(el => el.style.display = isEditing ? 'inline-block' : 'none');
+  document.getElementById('edit-label').textContent = _('edit');
+  document.getElementById('export-btn').textContent = _('exportBm');
+  document.getElementById('import-btn').textContent = _('importBm');
+
+  if (data.categories.length === 0) {
+    container.innerHTML = `
+      <div class="empty-state">
+        <p>${_('noBookmarks')}</p>
+        <button class="btn ${isEditing ? '' : 'hidden'}" onclick="addCategory()">${_('addCat')}</button>
+      </div>
+    `;
+    return;
+  }
+
+  let html = '';
+  for (let ci = 0; ci < data.categories.length; ci++) {
+    const cat = data.categories[ci];
+    html += `<div class="category" draggable="${isEditing}" data-ci="${ci}">`;
+    html += '<div class="category-header">';
+    html += `<span class="drag-handle category-drag-handle" data-no-link="1">⠿</span>`;
+    html += `<span class="category-title">${esc(cat.name)}</span>`;
+    html += `<div class="edit-actions ${isEditing ? '' : 'hidden'}">`;
+    html += `<button class="btn btn-sm btn-outline" onclick="addBookmark(${ci})">${_('link')}</button>`;
+    html += `<button class="btn btn-sm btn-outline" onclick="exportCategory(${ci})" title="${_('exportCat')}">${_('exportCat')}</button>`;
+    html += `<button class="btn btn-sm btn-outline" onclick="editCategory(${ci})">${_('edit')}</button>`;
+    html += `<button class="btn btn-sm btn-danger" onclick="deleteCategory(${ci})">×</button>`;
+    html += '</div></div><div class="bookmarks">';
+
+    for (let bi = 0; bi < cat.bookmarks.length; bi++) {
+      const bm = cat.bookmarks[bi];
+      let favicon = '';
+      try { favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(new URL(bm.url).hostname)}&sz=32`; } catch (_) {}
+      html += `<a class="bookmark" href="${esc(bm.url)}" target="_blank" rel="noopener"
+                   draggable="${isEditing}"
+                   data-ci="${ci}" data-bi="${bi}">`;
+      html += `<span class="drag-handle" data-no-link="1">⠿</span>`;
+      html += `<img class="favicon" src="${favicon}" alt="" loading="lazy" onerror="this.style.display='none'">`;
+      html += `<span class="info"><span class="title">${esc(bm.title)}</span><span class="url">${esc(bm.url)}</span></span>`;
+      html += `<span class="bookmark-edit" data-no-link="1">`;
+      html += `<button class="btn btn-sm btn-outline" onclick="event.preventDefault(); event.stopPropagation(); editBookmark(${ci},${bi})">${_('edit')}</button>`;
+      html += `<button class="btn btn-sm btn-danger" onclick="event.preventDefault(); event.stopPropagation(); deleteBookmark(${ci},${bi})">×</button>`;
+      html += `</span></a>`;
+    }
+    html += '</div></div>';
+  }
+  html += `<div style="margin-top:8px;${isEditing ? '' : 'display:none'}">
+    <button class="btn btn-sm btn-outline" onclick="addCategory()">${_('cat')}</button>
+    <button class="btn btn-sm btn-outline" onclick="document.getElementById('import-cat-input').click()" style="margin-left:6px">${_('importCatLabel')}</button>
+    <input type="file" id="import-cat-input" accept=".json" style="display:none" onchange="importCategory(event)">
+  </div>`;
+  container.innerHTML = html;
+
+  if (isEditing) {
+    container.querySelectorAll('.bookmark[draggable="true"]').forEach(el => {
+      el.addEventListener('dragstart', onBmDragStart);
+      el.addEventListener('dragend', onDragEnd);
+      el.addEventListener('dragover', onDragOver);
+      el.addEventListener('dragenter', onDragEnter);
+      el.addEventListener('dragleave', onDragLeave);
+      el.addEventListener('drop', onBmDrop);
+    });
+    container.querySelectorAll('.category[draggable="true"]').forEach(el => {
+      el.addEventListener('dragstart', onCatDragStart);
+      el.addEventListener('dragend', onDragEnd);
+      el.addEventListener('dragover', onDragOver);
+      el.addEventListener('dragenter', onDragEnter);
+      el.addEventListener('dragleave', onDragLeave);
+      el.addEventListener('drop', onCatDrop);
+    });
+    container.addEventListener('click', e => {
+      if (e.target.closest('[data-no-link]')) e.preventDefault();
+    });
+  }
+
+  document.getElementById('page-title').textContent = data.title;
+  document.title = data.title;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// DRAG & DROP (shared)
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  dragSource = null;
+}
+function onDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+function onDragEnter(e) { e.preventDefault(); if (e.currentTarget !== dragSource) e.currentTarget.classList.add('drag-over'); }
+function onDragLeave(e) { e.currentTarget.classList.remove('drag-over'); }
+
+function onBmDragStart(e) {
+  dragSource = e.currentTarget;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', '');
+}
+
+function onBmDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+  if (!dragSource || dragSource === e.currentTarget) return;
+  const from = dragSource.dataset, to = e.currentTarget.dataset;
+  const ci = parseInt(from.ci), bi = parseInt(from.bi);
+  const tci = parseInt(to.ci), tbi = parseInt(to.bi);
+  if (ci === tci) {
+    const arr = data.categories[ci].bookmarks;
+    const [item] = arr.splice(bi, 1); arr.splice(tbi, 0, item);
+  } else {
+    const fromArr = data.categories[ci].bookmarks;
+    const toArr = data.categories[tci].bookmarks;
+    const [item] = fromArr.splice(bi, 1); toArr.splice(tbi, 0, item);
+  }
+  saveData(); render(); toast(_('toastReordered'));
+}
+
+function onCatDragStart(e) {
+  dragSource = e.currentTarget;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', '');
+}
+
+function onCatDrop(e) {
+  e.preventDefault(); e.stopPropagation();
+  e.currentTarget.classList.remove('drag-over');
+  if (!dragSource || dragSource === e.currentTarget) return;
+  const from = parseInt(dragSource.dataset.ci), to = parseInt(e.currentTarget.dataset.ci);
+  const item = data.categories.splice(from, 1)[0];
+  data.categories.splice(to, 0, item);
+  saveData(); render(); toast(_('toastCatReordered'));
+}
+
+// MODAL
+function openModal(title, bodyHtml) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = bodyHtml;
+  document.getElementById('modal').classList.add('active');
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('active');
+}
+
+let _confirmCallback = null;
+
+function confirmDialog(message, onConfirm) {
+  _confirmCallback = onConfirm;
+  openModal(_('confirm'), `
+    <p style="margin-bottom:18px;font-size:15px">${esc(message)}</p>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal(); _confirmCallback=null">${_('cancel')}</button>
+      <button class="btn btn-danger" onclick="confirmAction()">${_('delete')}</button>
+    </div>
+  `);
+}
+
+function confirmAction() {
+  closeModal();
+  if (_confirmCallback) _confirmCallback();
+  _confirmCallback = null;
+}
+
+// CATEGORIES
+function addCategory() {
+  openModal(_('addCatTitle'), `
+    <label for="cat-name">${_('catNameLabel')}</label>
+    <input id="cat-name" placeholder="${_('catNamePlaceholder')}" autofocus>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
+      <button class="btn" onclick="confirmAddCategory()">${_('add')}</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('cat-name')?.focus(), 50);
+}
+
+function confirmAddCategory() {
+  const name = document.getElementById('cat-name').value.trim();
+  if (!name) return toast(_('toastCatName'));
+  data.categories.push({ name, bookmarks: [] });
+  saveData(); closeModal(); render(); toast(_('toastCatAdded'));
+}
+
+function editCategory(ci) {
+  const cat = data.categories[ci];
+  openModal(_('editCatTitle'), `
+    <label for="cat-name">${_('catNameLabel')}</label>
+    <input id="cat-name" value="${esc(cat.name)}" autofocus>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
+      <button class="btn" onclick="confirmEditCategory(${ci})">${_('save')}</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('cat-name')?.focus(), 50);
+}
+
+function confirmEditCategory(ci) {
+  const name = document.getElementById('cat-name').value.trim();
+  if (!name) return toast(_('toastCatName'));
+  data.categories[ci].name = name;
+  saveData(); closeModal(); render(); toast(_('toastCatRenamed'));
+}
+
+function deleteCategory(ci) {
+  confirmDialog(
+    _('confirmDeleteCat', { name: data.categories[ci].name }),
+    () => { data.categories.splice(ci, 1); saveData(); render(); toast(_('toastCatDeleted')); }
+  );
+}
+
+// BOOKMARKS
+function addBookmark(ci) {
+  openModal(_('addBm'), `
+    <label for="bm-title">${_('titleLabel')}</label>
+    <input id="bm-title" placeholder="${_('bmTitlePlaceholder')}" autofocus>
+    <label for="bm-url">${_('urlLabel')}</label>
+    <input id="bm-url" placeholder="${_('bmUrlPlaceholder')}">
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
+      <button class="btn" onclick="confirmAddBookmark(${ci})">${_('add')}</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('bm-title')?.focus(), 50);
+}
+
+function confirmAddBookmark(ci) {
+  const title = document.getElementById('bm-title').value.trim();
+  const url = document.getElementById('bm-url').value.trim();
+  if (!title) return toast(_('toastBmTitle'));
+  if (!url) return toast(_('toastBmUrl'));
+  data.categories[ci].bookmarks.push({ title, url });
+  saveData(); closeModal(); render(); toast(_('toastBmAdded'));
+}
+
+function editBookmark(ci, bi) {
+  const bm = data.categories[ci].bookmarks[bi];
+  openModal(_('editBm'), `
+    <label for="bm-title">${_('titleLabel')}</label>
+    <input id="bm-title" value="${esc(bm.title)}" autofocus>
+    <label for="bm-url">${_('urlLabel')}</label>
+    <input id="bm-url" value="${esc(bm.url)}">
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
+      <button class="btn" onclick="confirmEditBookmark(${ci},${bi})">${_('save')}</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('bm-title')?.focus(), 50);
+}
+
+function confirmEditBookmark(ci, bi) {
+  const title = document.getElementById('bm-title').value.trim();
+  const url = document.getElementById('bm-url').value.trim();
+  if (!title) return toast(_('toastBmTitle'));
+  if (!url) return toast(_('toastBmUrl'));
+  const bm = data.categories[ci].bookmarks[bi];
+  bm.title = title; bm.url = url;
+  saveData(); closeModal(); render(); toast(_('toastBmUpdated'));
+}
+
+function deleteBookmark(ci, bi) {
+  confirmDialog(_('confirmDeleteBm'), () => {
+    data.categories[ci].bookmarks.splice(bi, 1);
+    saveData(); render(); toast(_('toastBmDeleted'));
+  });
+}
+
+// TITLE
+function editTitle() {
+  openModal(_('editTitleModal'), `
+    <label for="page-title-input">${_('pageTitleLabel')}</label>
+    <input id="page-title-input" value="${esc(data.title)}" autofocus>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
+      <button class="btn" onclick="confirmEditTitle()">${_('save')}</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('page-title-input')?.focus(), 50);
+}
+
+function confirmEditTitle() {
+  const title = document.getElementById('page-title-input').value.trim();
+  if (!title) return toast(_('toastBmTitle'));
+  data.title = title;
+  saveData(); closeModal(); render(); toast(_('toastTitleUpdated'));
+}
+
+// EXPORT / IMPORT
+function exportData() {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bookmarks.json'; a.click();
+  URL.revokeObjectURL(url);
+  toast(_('toastExported'));
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.categories || !Array.isArray(imported.categories))
+        return toast(_('toastInvalidCategories'));
+      for (const cat of imported.categories) {
+        if (!cat.name || !Array.isArray(cat.bookmarks)) return toast(_('toastInvalidCatFormat'));
+        for (const bm of cat.bookmarks)
+          if (!bm.title || !bm.url) return toast(_('toastInvalidBmFormat'));
+      }
+      data = imported; saveData(); render();
+      toast(_('importedCount', { n: imported.categories.reduce((s, c) => s + c.bookmarks.length, 0) }));
+    } catch (_) { toast(_('toastInvalidJSON')); }
+  };
+  reader.readAsText(file); event.target.value = '';
+}
+
+function exportCategory(ci) {
+  const cat = data.categories[ci];
+  const blob = new Blob([JSON.stringify(cat, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `${cat.name.replace(/\s+/g, '_').toLowerCase()}.json`; a.click();
+  URL.revokeObjectURL(url);
+  toast(_('toastCatExported'));
+}
+
+function importCategory(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const cat = JSON.parse(e.target.result);
+      if (!cat.name || !Array.isArray(cat.bookmarks)) return toast(_('toastInvalidCatFile'));
+      for (const bm of cat.bookmarks)
+        if (!bm.title || !bm.url) return toast(_('toastInvalidBmFormat'));
+      data.categories.push({ name: cat.name, bookmarks: cat.bookmarks });
+      saveData(); render();
+      toast(_('importedCat', { name: cat.name }));
+    } catch (_) { toast(_('toastInvalidJSON')); }
+  };
+  reader.readAsText(file); event.target.value = '';
+}
+
+// DARK MODE
+function setTheme(theme) {
+  document.documentElement.classList.remove('dark', 'light');
+  if (theme === 'dark') document.documentElement.classList.add('dark');
+  else if (theme === 'light') document.documentElement.classList.add('light');
+  localStorage.setItem('homepage-theme', theme);
+  document.getElementById('dark-toggle').textContent = theme === 'dark' ? '☀' : '☾';
+}
+
+const savedTheme = localStorage.getItem('homepage-theme');
+if (savedTheme) setTheme(savedTheme);
+else document.getElementById('dark-toggle').textContent =
+  window.matchMedia('(prefers-color-scheme: dark)').matches ? '☀' : '☾';
+
+document.getElementById('dark-toggle').addEventListener('click', () => {
+  const isDark = document.documentElement.classList.contains('dark') ||
+    (!document.documentElement.classList.contains('light') &&
+     window.matchMedia('(prefers-color-scheme: dark)').matches);
+  setTheme(isDark ? 'light' : 'dark');
+});
+
+// LANG
+const langSelect = document.getElementById('lang-select');
+LANG_KEYS.forEach(k => {
+  const opt = document.createElement('option');
+  opt.value = k; opt.textContent = LANG[k].name;
+  langSelect.appendChild(opt);
+});
+_lang = detectLang();
+langSelect.value = _lang;
+
+// EDIT TOGGLE
+document.getElementById('edit-switch').addEventListener('change', function() {
+  editMode = this.checked;
+  render();
+});
+
+// INIT
+render();
+</script>
+</body>
+</html>
