@@ -227,7 +227,9 @@
     box-shadow: var(--shadow);
   }
   .bookmark:hover { box-shadow: var(--shadow-lg); border-color: var(--accent); transform: translateY(-2px); }
-  .bookmark .favicon {
+  .bookmark.disabled { opacity: 0.45; pointer-events: none; cursor: default; }
+.bookmark.disabled:hover { box-shadow: var(--shadow); border-color: var(--border); transform: none; }
+.bookmark .favicon {
     width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
     background: var(--accent-subtle); padding: 4px;
     display: flex; align-items: center; justify-content: center;
@@ -419,7 +421,22 @@
   @media (min-width: 701px) and (max-width: 900px) {
     .bookmarks { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
   }
-  @media (hover: none) and (pointer: coarse) {
+  .network-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 600; padding: 4px 12px;
+  border-radius: 20px; color: var(--accent);
+  background: var(--accent-subtle); border: 1px solid transparent;
+  cursor: default; white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
+}
+.network-badge .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+}
+.network-badge.detecting { opacity: 0.6; }
+.network-badge.unknown { color: var(--text-secondary); }
+.network-badge.unknown .dot { background: var(--text-secondary); }
+@media (hover: none) and (pointer: coarse) {
     .bookmark:hover { box-shadow: var(--shadow); border-color: var(--border); transform: none; }
     .bookmark:active { transform: scale(0.98); }
     .btn:active { transform: scale(0.97); }
@@ -439,9 +456,11 @@
       <button class="btn btn-sm btn-outline edit-title-btn" onclick="editTitle()" title="Edit title" style="display:none;padding:2px 8px;font-size:14px">✎</button>
     </div>
     <div style="display:flex;align-items:center;gap:16px">
+      <span class="network-badge detecting" id="network-badge"><span class="dot"></span><span id="network-name">...</span></span>
       <select class="theme-select" id="theme-select" onchange="setTheme(this.value)" title="Change theme"></select>
       <span class="edit-io">
         <select class="lang-select" id="lang-select" onchange="setLang(this.value)"></select>
+        <button class="btn btn-sm btn-outline" id="networks-btn" onclick="manageNetworks()">Networks</button>
         <button class="btn btn-sm btn-outline" id="export-btn" onclick="exportData()">Export</button>
         <button class="btn btn-sm btn-outline" id="import-btn" onclick="document.getElementById('import-input').click()">Import</button>
         <input type="file" id="import-input" accept=".json" style="display:none" onchange="importData(event)">
@@ -495,6 +514,15 @@ const LANG = {
     welcomeImport: 'Bulk import', welcomeImportDesc: 'Load from a JSON file',
     addSamples: 'Add sample bookmarks', startFresh: 'Start fresh',
     exportCat: 'Export', importCatLabel: 'Import',
+    networks: 'Networks', addNetwork: 'Add Network', editNetwork: 'Edit Network',
+    networkName: 'Network Name', networkIP: 'Public IP',
+    networkNamePlaceholder: 'e.g. Home', networkIPPlaceholder: 'e.g. 1.2.3.4',
+    toastNetworkAdded: 'Network added', toastNetworkUpdated: 'Network updated', toastNetworkDeleted: 'Network deleted',
+    toastNetworkNameReq: 'Enter a network name', toastNetworkIPReq: 'Enter a public IP',
+    confirmDeleteNetwork: 'Delete network "{name}"?',
+    currentNetwork: 'Network: {name}', unknownNetwork: 'Unknown network', detectingNetwork: 'Detecting\u2026',
+    urlOnNetwork: 'URL on {name}', disabledOnNetwork: 'Disabled on {name}',
+    clearAll: 'Clear all bookmarks', confirmClearAll: 'Delete all bookmarks and categories?', clearAllNote: 'This action cannot be undone.',
   },
   fr: { name: 'FR',
     edit: 'Éditer', link: '+ Lien', cat: '+ Catégorie', importCat: '↑ Catégorie',
@@ -522,6 +550,8 @@ const LANG = {
     welcomeImport: 'Importer en bloc', welcomeImportDesc: 'Chargez depuis un fichier JSON',
     addSamples: 'Ajouter des exemples', startFresh: 'Commencer à zéro',
     exportCat: 'Exporter', importCatLabel: 'Importer',
+    urlOnNetwork: 'URL sur {name}', disabledOnNetwork: 'Désactivé sur {name}',
+    clearAll: 'Tout effacer', confirmClearAll: 'Supprimer tous les favoris et catégories ?', clearAllNote: 'Cette action est irréversible.',
   },
   de: { name: 'DE',
     edit: 'Bearbeiten', link: '+ Link', cat: '+ Kategorie', importCat: '↑ Kategorie',
@@ -549,6 +579,8 @@ const LANG = {
     welcomeImport: 'Massenimport', welcomeImportDesc: 'Aus einer JSON-Datei laden',
     addSamples: 'Beispiele hinzufügen', startFresh: 'Neu beginnen',
     exportCat: 'Exportieren', importCatLabel: 'Importieren',
+    urlOnNetwork: 'URL auf {name}', disabledOnNetwork: 'Deaktiviert auf {name}',
+    clearAll: 'Alle Lesezeichen löschen', confirmClearAll: 'Alle Lesezeichen und Kategorien löschen?', clearAllNote: 'Diese Aktion kann nicht rückgängig gemacht werden.',
   },
   ja: { name: '日本語',
     edit: '編集', link: '+ リンク', cat: '+ カテゴリ', importCat: '↑ カテゴリ',
@@ -576,6 +608,8 @@ const LANG = {
     welcomeImport: '一括インポート', welcomeImportDesc: 'JSONファイルから読み込み',
     addSamples: 'サンプルを追加', startFresh: '新しく始める',
     exportCat: 'エクスポート', importCatLabel: 'インポート',
+    urlOnNetwork: '{name}のURL', disabledOnNetwork: '{name}で無効化',
+    clearAll: 'すべてのブックマークを削除', confirmClearAll: 'すべてのブックマークとカテゴリを削除しますか？', clearAllNote: 'この操作は元に戻せません。',
   },
   zh: { name: '中文',
     edit: '编辑', link: '+ 链接', cat: '+ 分类', importCat: '↑ 分类',
@@ -603,6 +637,8 @@ const LANG = {
     welcomeImport: '批量导入', welcomeImportDesc: '从JSON文件加载',
     addSamples: '添加示例', startFresh: '重新开始',
     exportCat: '导出', importCatLabel: '导入',
+    urlOnNetwork: '{name}上的URL', disabledOnNetwork: '在{name}上禁用',
+    clearAll: '清除所有书签', confirmClearAll: '删除所有书签和分类？', clearAllNote: '此操作无法撤销。',
   },
   es: { name: 'ES',
     edit: 'Editar', link: '+ Enlace', cat: '+ Categoría', importCat: '↑ Categoría',
@@ -630,6 +666,8 @@ const LANG = {
     welcomeImport: 'Importación masiva', welcomeImportDesc: 'Cargar desde un archivo JSON',
     addSamples: 'Añadir ejemplos', startFresh: 'Empezar de cero',
     exportCat: 'Exportar', importCatLabel: 'Importar',
+    urlOnNetwork: 'URL en {name}', disabledOnNetwork: 'Desactivado en {name}',
+    clearAll: 'Borrar todos los marcadores', confirmClearAll: '¿Eliminar todos los marcadores y categorías?', clearAllNote: 'Esta acción no se puede deshacer.',
   },
 };
 
@@ -659,6 +697,7 @@ function setLang(lang) {
 
 const DEFAULT_DATA = {
   title: 'Bookmarks',
+  profiles: [],
   categories: [
     { name: 'Essentials', bookmarks: [
       { title: 'GitHub', url: 'https://github.com' },
@@ -677,6 +716,9 @@ let data = null;
 let editMode = false;
 let dragSource = null;
 let welcome = true;
+let currentProfile = null;
+let currentIP = null;
+let detectingNetwork = true;
 
 function loadData() {
   try {
@@ -699,7 +741,7 @@ function loadSamples() {
 }
 
 function startFresh() {
-  data = { title: 'Bookmarks', categories: [] };
+  data = { title: 'Bookmarks', profiles: [], categories: [] };
   saveData();
   document.getElementById('edit-switch').checked = true;
   editMode = true;
@@ -784,14 +826,16 @@ function render() {
 
     for (let bi = 0; bi < cat.bookmarks.length; bi++) {
       const bm = cat.bookmarks[bi];
+      const effUrl = getEffectiveUrl(bm);
       let favicon = '';
-      try { favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(new URL(bm.url).hostname)}&sz=32`; } catch (_) {}
-      html += `<a class="bookmark" href="${esc(bm.url)}" target="_blank" rel="noopener"
+      try { favicon = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(new URL(effUrl).hostname)}&sz=32`; } catch (_) {}
+      const bmDisabled = isBookmarkDisabled(bm);
+      html += `<a class="bookmark${bmDisabled ? ' disabled' : ''}" href="${bmDisabled ? '#' : esc(effUrl)}" target="${bmDisabled ? '' : '_blank'}" rel="${bmDisabled ? '' : 'noopener'}"
                    draggable="${isEditing}"
                    data-ci="${ci}" data-bi="${bi}">`;
       html += `<span class="drag-handle" data-no-link="1">⠿</span>`;
       html += `<span class="favicon"><img src="${favicon}" alt="" loading="lazy" onerror="this.style.display='none'"></span>`;
-      html += `<span class="info"><span class="title">${esc(bm.title)}</span><span class="url">${esc(bm.url)}</span></span>`;
+      html += `<span class="info"><span class="title">${esc(bm.title)}</span><span class="url">${esc(effUrl)}</span></span>`;
       html += `<span class="bookmark-edit" data-no-link="1">`;
       html += `<button class="btn btn-sm btn-outline" onclick="event.preventDefault(); event.stopPropagation(); editBookmark(${ci},${bi})">${_('edit')}</button>`;
       html += `<button class="btn btn-sm btn-danger" onclick="event.preventDefault(); event.stopPropagation(); deleteBookmark(${ci},${bi})">×</button>`;
@@ -804,6 +848,11 @@ function render() {
     <button class="btn btn-sm btn-outline" onclick="document.getElementById('import-cat-input').click()" style="margin-left:6px">${_('importCatLabel')}</button>
     <input type="file" id="import-cat-input" accept=".json" style="display:none" onchange="importCategory(event)">
   </div>`;
+  if (isEditing) {
+    html += `<div style="margin-top:20px;text-align:center">
+      <button class="btn btn-sm btn-danger" onclick="clearAllBookmarks()">${_('clearAll')}</button>
+    </div>`;
+  }
   container.innerHTML = html;
 
   if (isEditing) {
@@ -836,6 +885,55 @@ function esc(s) {
   const d = document.createElement('div');
   d.textContent = s;
   return d.innerHTML;
+}
+
+function updateNetworkBadge() {
+  const badge = document.getElementById('network-badge');
+  const nameEl = document.getElementById('network-name');
+  if (detectingNetwork) {
+    badge.className = 'network-badge detecting';
+    nameEl.textContent = _('detectingNetwork');
+    return;
+  }
+  if (currentProfile) {
+    badge.className = 'network-badge';
+    nameEl.textContent = _('currentNetwork', { name: currentProfile.name });
+  } else {
+    badge.className = 'network-badge unknown';
+    nameEl.textContent = _('unknownNetwork');
+  }
+}
+
+function detectNetwork() {
+  detectingNetwork = true;
+  updateNetworkBadge();
+  fetch('https://api.ipify.org?format=json')
+    .then(r => r.json())
+    .then(d => {
+      currentIP = d.ip;
+      const match = (data.profiles || []).find(p => p.ip === currentIP);
+      currentProfile = match || null;
+      detectingNetwork = false;
+      updateNetworkBadge();
+      render();
+    })
+    .catch(() => {
+      currentIP = null;
+      currentProfile = null;
+      detectingNetwork = false;
+      updateNetworkBadge();
+    });
+}
+
+function getEffectiveUrl(bm) {
+  if (currentProfile && bm.networkUrls && bm.networkUrls[currentProfile.name]) {
+    return bm.networkUrls[currentProfile.name];
+  }
+  return bm.url;
+}
+
+function isBookmarkDisabled(bm) {
+  return currentProfile && bm.disabledOnNetworks && bm.disabledOnNetworks.includes(currentProfile.name);
 }
 
 // DRAG & DROP (shared)
@@ -971,11 +1069,26 @@ function deleteCategory(ci) {
 
 // BOOKMARKS
 function addBookmark(ci) {
+  let netFields = '';
+  if (data.profiles && data.profiles.length > 0) {
+    netFields = '<hr style="border:none;border-top:1px solid var(--border);margin:12px 0"><p style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:10px">Network-specific URLs (optional)</p>';
+    for (const p of data.profiles) {
+      netFields += `<label>${esc(_('urlOnNetwork', { name: p.name }))}</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="net-url" data-net="${esc(p.name)}" placeholder="${esc(_('bmUrlPlaceholder'))}" style="flex:1;margin-bottom:0">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap;cursor:pointer">
+          <input type="checkbox" class="net-disable" data-net="${esc(p.name)}"> ${esc(_('disabledOnNetwork', { name: p.name }))}
+        </label>
+      </div>
+      <div style="height:10px"></div>`;
+    }
+  }
   openModal(_('addBm'), `
     <label for="bm-title">${_('titleLabel')}</label>
     <input id="bm-title" placeholder="${_('bmTitlePlaceholder')}" autofocus>
     <label for="bm-url">${_('urlLabel')}</label>
     <input id="bm-url" placeholder="${_('bmUrlPlaceholder')}">
+    ${netFields}
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
       <button class="btn" onclick="confirmAddBookmark(${ci})">${_('add')}</button>
@@ -989,17 +1102,50 @@ function confirmAddBookmark(ci) {
   const url = document.getElementById('bm-url').value.trim();
   if (!title) return toast(_('toastBmTitle'));
   if (!url) return toast(_('toastBmUrl'));
-  data.categories[ci].bookmarks.push({ title, url });
+  const bm = { title, url };
+  const netInputs = document.querySelectorAll('.net-url');
+  if (netInputs.length > 0) {
+    const networkUrls = {};
+    const disabledOnNetworks = [];
+    for (const inp of netInputs) {
+      const val = inp.value.trim();
+      if (val) networkUrls[inp.dataset.net] = val;
+    }
+    document.querySelectorAll('.net-disable').forEach(cb => {
+      if (cb.checked) disabledOnNetworks.push(cb.dataset.net);
+    });
+    if (Object.keys(networkUrls).length > 0) bm.networkUrls = networkUrls;
+    if (disabledOnNetworks.length > 0) bm.disabledOnNetworks = disabledOnNetworks;
+  }
+  data.categories[ci].bookmarks.push(bm);
   saveData(); closeModal(); render(); toast(_('toastBmAdded'));
 }
 
 function editBookmark(ci, bi) {
   const bm = data.categories[ci].bookmarks[bi];
+  let netFields = '';
+  if (data.profiles && data.profiles.length > 0) {
+    if (!bm.networkUrls) bm.networkUrls = {};
+    netFields = '<hr style="border:none;border-top:1px solid var(--border);margin:12px 0"><p style="font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:10px">Network-specific URLs (optional)</p>';
+    for (const p of data.profiles) {
+      const val = bm.networkUrls[p.name] || '';
+      const disabled = bm.disabledOnNetworks && bm.disabledOnNetworks.includes(p.name);
+      netFields += `<label>${esc(_('urlOnNetwork', { name: p.name }))}</label>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input class="net-url" data-net="${esc(p.name)}" value="${esc(val)}" placeholder="${esc(bm.url)}" style="flex:1;margin-bottom:0">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap;cursor:pointer">
+          <input type="checkbox" class="net-disable" data-net="${esc(p.name)}"${disabled ? ' checked' : ''}> ${esc(_('disabledOnNetwork', { name: p.name }))}
+        </label>
+      </div>
+      <div style="height:10px"></div>`;
+    }
+  }
   openModal(_('editBm'), `
     <label for="bm-title">${_('titleLabel')}</label>
     <input id="bm-title" value="${esc(bm.title)}" autofocus>
     <label for="bm-url">${_('urlLabel')}</label>
     <input id="bm-url" value="${esc(bm.url)}">
+    ${netFields}
     <div class="modal-actions">
       <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
       <button class="btn" onclick="confirmEditBookmark(${ci},${bi})">${_('save')}</button>
@@ -1015,6 +1161,22 @@ function confirmEditBookmark(ci, bi) {
   if (!url) return toast(_('toastBmUrl'));
   const bm = data.categories[ci].bookmarks[bi];
   bm.title = title; bm.url = url;
+  const netInputs = document.querySelectorAll('.net-url');
+  if (netInputs.length > 0) {
+    if (!bm.networkUrls) bm.networkUrls = {};
+    for (const inp of netInputs) {
+      const val = inp.value.trim();
+      if (val) bm.networkUrls[inp.dataset.net] = val;
+      else delete bm.networkUrls[inp.dataset.net];
+    }
+    if (Object.keys(bm.networkUrls).length === 0) delete bm.networkUrls;
+    const disabledOnNetworks = [];
+    document.querySelectorAll('.net-disable').forEach(cb => {
+      if (cb.checked) disabledOnNetworks.push(cb.dataset.net);
+    });
+    if (disabledOnNetworks.length > 0) bm.disabledOnNetworks = disabledOnNetworks;
+    else delete bm.disabledOnNetworks;
+  }
   saveData(); closeModal(); render(); toast(_('toastBmUpdated'));
 }
 
@@ -1045,6 +1207,22 @@ function confirmEditTitle() {
   saveData(); closeModal(); render(); toast(_('toastTitleUpdated'));
 }
 
+function clearAllBookmarks() {
+  _confirmCallback = () => {
+    data.categories = [];
+    data.profiles = [];
+    saveData(); render(); toast(_('clearAll'));
+  };
+  openModal(_('confirmClearAll'), `
+    <p style="margin-bottom:6px;font-size:15px">${esc(_('confirmClearAll'))}</p>
+    <p style="margin-bottom:18px;font-size:13px;color:var(--danger)">${esc(_('clearAllNote'))}</p>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal(); _confirmCallback=null">${_('cancel')}</button>
+      <button class="btn btn-danger" onclick="confirmAction()">${_('delete')}</button>
+    </div>
+  `);
+}
+
 // EXPORT / IMPORT
 function exportData() {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -1069,6 +1247,7 @@ function importData(event) {
         for (const bm of cat.bookmarks)
           if (!bm.title || !bm.url) return toast(_('toastInvalidBmFormat'));
       }
+      if (!imported.profiles) imported.profiles = [];
       data = imported; saveData(); render();
       toast(_('importedCount', { n: imported.categories.reduce((s, c) => s + c.bookmarks.length, 0) }));
     } catch (_) { toast(_('toastInvalidJSON')); }
@@ -1102,6 +1281,108 @@ function importCategory(event) {
     } catch (_) { toast(_('toastInvalidJSON')); }
   };
   reader.readAsText(file); event.target.value = '';
+}
+
+// NETWORK PROFILES
+function manageNetworks() {
+  if (!data.profiles) data.profiles = [];
+  let listHtml = '';
+  for (let i = 0; i < data.profiles.length; i++) {
+    const p = data.profiles[i];
+    const active = currentProfile && currentProfile.name === p.name;
+    listHtml += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)">
+      <div>
+        <strong>${esc(p.name)}</strong>
+        <span style="font-size:12px;color:var(--text-secondary);margin-left:8px">${esc(p.ip)}</span>
+        ${active ? '<span style="font-size:11px;color:var(--accent);margin-left:6px">● active</span>' : ''}
+      </div>
+      <div style="display:flex;gap:4px">
+        <button class="btn btn-sm btn-outline" onclick="editProfile(${i})">${_('edit')}</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteProfile(${i})">×</button>
+      </div>
+    </div>`;
+  }
+  if (!listHtml) listHtml = '<p style="color:var(--text-secondary);font-size:14px;text-align:center;padding:12px 0">No networks configured</p>';
+  openModal(_('networks'), `
+    ${listHtml}
+    <div class="modal-actions" style="justify-content:space-between;margin-top:12px">
+      <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
+      <button class="btn" onclick="closeModal();addNetwork()">${_('addNetwork')}</button>
+    </div>
+  `);
+}
+
+function addNetwork() {
+  openModal(_('addNetwork'), `
+    <label for="net-name">${_('networkName')}</label>
+    <input id="net-name" placeholder="${_('networkNamePlaceholder')}" autofocus>
+    <label for="net-ip">${_('networkIP')}</label>
+    <input id="net-ip" placeholder="${_('networkIPPlaceholder')}">
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
+      <button class="btn" onclick="confirmAddNetwork()">${_('add')}</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('net-name')?.focus(), 50);
+}
+
+function confirmAddNetwork() {
+  const name = document.getElementById('net-name').value.trim();
+  const ip = document.getElementById('net-ip').value.trim();
+  if (!name) return toast(_('toastNetworkNameReq'));
+  if (!ip) return toast(_('toastNetworkIPReq'));
+  if (!data.profiles) data.profiles = [];
+  data.profiles.push({ name, ip });
+  saveData(); closeModal(); toast(_('toastNetworkAdded'));
+  detectNetwork();
+}
+
+function editProfile(i) {
+  const p = data.profiles[i];
+  openModal(_('editNetwork'), `
+    <label for="net-name">${_('networkName')}</label>
+    <input id="net-name" value="${esc(p.name)}" autofocus>
+    <label for="net-ip">${_('networkIP')}</label>
+    <input id="net-ip" value="${esc(p.ip)}">
+    <div class="modal-actions">
+      <button class="btn btn-cancel" onclick="closeModal()">${_('cancel')}</button>
+      <button class="btn" onclick="confirmEditProfile(${i})">${_('save')}</button>
+    </div>
+  `);
+  setTimeout(() => document.getElementById('net-name')?.focus(), 50);
+}
+
+function confirmEditProfile(i) {
+  const name = document.getElementById('net-name').value.trim();
+  const ip = document.getElementById('net-ip').value.trim();
+  if (!name) return toast(_('toastNetworkNameReq'));
+  if (!ip) return toast(_('toastNetworkIPReq'));
+  const oldName = data.profiles[i].name;
+  data.profiles[i].name = name;
+  data.profiles[i].ip = ip;
+  if (name !== oldName) {
+    for (const cat of data.categories) {
+      for (const bm of cat.bookmarks) {
+        if (bm.networkUrls && bm.networkUrls[oldName] !== undefined) {
+          bm.networkUrls[name] = bm.networkUrls[oldName];
+          delete bm.networkUrls[oldName];
+        }
+      }
+    }
+  }
+  saveData(); closeModal(); toast(_('toastNetworkUpdated'));
+  detectNetwork();
+}
+
+function deleteProfile(i) {
+  confirmDialog(
+    _('confirmDeleteNetwork', { name: data.profiles[i].name }),
+    () => {
+      data.profiles.splice(i, 1);
+      saveData(); toast(_('toastNetworkDeleted'));
+      detectNetwork();
+    }
+  );
 }
 
 // THEMES
@@ -1170,11 +1451,13 @@ document.getElementById('modal').addEventListener('click', function(e) {
 data = loadData();
 if (!data) {
   welcome = true;
-  data = { title: 'Bookmarks', categories: [] };
+  data = { title: 'Bookmarks', profiles: [], categories: [] };
 } else {
   welcome = false;
+  if (!data.profiles) data.profiles = [];
 }
 render();
+detectNetwork();
 </script>
 </body>
 </html>
